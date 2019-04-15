@@ -3,7 +3,9 @@
 - <a href="http://calab.hanyang.ac.kr/courses/CG_taesoo/PA1_2019.pdf" target="_blank">calab.hanyang.ac.kr</a><br>
 - <a href="http://www.cs.cornell.edu/courses/cs4620/2011fa/lectures/07raytracingWeb.pdf" target="_blank">cs.cornell.edu</a><br>
 - <a href="http://web.cse.ohio-state.edu/~shen.94/681/Site/Slides_files/basic_algo.pdf">web.cse.ohio-state.edu</a><br>
-</hr>
+<br>
+<hr>
+<br>
 <h1>Program 1: ray tracer</h1>
 <i>out: Thursday March 21, 2019<br>
 due: Thursdsay April 25, 2019 (24pm)</i>
@@ -69,8 +71,9 @@ The camera’s view is determined by the center of projection (the viewpoint) an
 <br>
 • light: This element describes a light. It contains the 3D point position and the RGB color color.<br>
 <br>
-• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref. For instance:<br>
+• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref.<br>
 <br>
+For instance:<br>
 
 ```xml
 <shader type="Lambertian" name="gray">
