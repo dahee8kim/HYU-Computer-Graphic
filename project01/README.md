@@ -15,7 +15,7 @@ In this assignment, your ray tracer will have support for:<br>
 • Spheres and axis-aligned boxes<br>
 • Lambertian and Phong shading<br>
 • Point lights with shadows<br>
-• Arbitrary perspective cam<br>eras<br>
+• Arbitrary perspective cameras<br>
 <br>
 Some framework code (rayTracer.py - less than 60 lines) is provided to save you the time to implement I/0, an XML parser, and vector operations.<br>
 <br>
@@ -32,12 +32,14 @@ This is not to say that you need to write a lot of new code. For reference, the 
 3. Support spheres and axis-aligned boxes.<br>
 4. Support the Lambertian and Blinn-Phong shading models, as defined in Shirley 9.1–9.2 and in the lecture notes.<br>
 5. Support point lights that provide illumination that does not fall off with distance.<br>
+<br>
 You do not need to worry about malformed input, either syntactically or semantically. For instance, you will not be given a sphere with a negative radius or a scene without a camera.<br>
 <br>
 <br>
 <h2>3. File format</h2>
 The input file for your ray tracer is in XML. An XML file contains sequences of nested elements that are delimited by HTML-like angle-bracket tags. For instance, the XML code:<br>
 <br>
+
 ```xml
 <scene>
 <camera>
@@ -48,7 +50,9 @@ The input file for your ray tracer is in XML. An XML file contains sequences of 
 </scene>```
 
 contains four elements. One is a scene element that contains two others, called camera and surface. The surface element has an attribute named type that has the value Sphere. It also contains a center element that contains the text “1.0 2.0 3.0”, which in this context would be interpreted as the 3D point (1, 2, 3). An input file for the ray tracer always contains one scene element, which is allowed to contains tags of the following types:<br>
+<br>
 • surface: This element describes a geometric object. It must have an attribute type with value Sphere or Box. It can contain a shader element to set the shader, and also geometric parameters depending on its type:<br>
+<br>
 – for sphere: center, containing a 3D point, and radius, containing a real number.<br>
 – for box: minPt and maxPt, each containing a 3D point. If the two points are (xmin , ymin , zmin) and (xmax , ymax , zmax ) then the box is [xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ].<br>
 <br>
@@ -60,10 +64,16 @@ contains four elements. One is a scene element that contains two others, called 
 – projDistance, a real number d giving the distance from the center of the image rectangle to the center of projection.<br>
 – viewWidth and viewHeight, two real numbers that give the dimensions of viewing window on the image plane.<br>
 The camera’s view is determined by the center of projection (the viewpoint) and a view window of size viewWidth by viewHeight. The window’s center is positioned along the view direction at a distance d from the viewpoint. It is oriented in space so that it is perpendicular to the image plane normal and its top and bottom edges are perpendicular to the up vector.<br>
-• image: This element is just a pair of integers that specify the size of the output image in pixels.<br>
-• light: This element describes a light. It contains the 3D point position and the RGB color color.<br>
-• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref. For instance:<br>
 <br>
+• image: This element is just a pair of integers that specify the size of the output image in pixels.<br>
+<br>
+• light: This element describes a light. It contains the 3D point position and the RGB color color.<br>
+<br>
+• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref.
+<br>
+For instance:<br>
+<br>
+
 ```xml
 <shader type="Lambertian" name="gray">
 <diffuseColor>0.5 0.5 0.5</diffuseColor>
@@ -76,6 +86,7 @@ The camera’s view is determined by the center of projection (the viewpoint) an
 <center>5 0 0</center>
 <shader ref="gray"/>
 </surface>```
+
 
 applies the same shader to two spheres. Really, the file format is very simple and from the examples we provide you should have no trouble constructing any scene you want.<br>
 <br>
