@@ -54,7 +54,7 @@ contains four elements. One is a scene element that contains two others, called 
 <br>
 • surface: This element describes a geometric object. It must have an attribute type with value Sphere or Box. It can contain a shader element to set the shader, and also geometric parameters depending on its type:<br>
 – for sphere: center, containing a 3D point, and radius, containing a real number.<br>
-– for box: minPt and maxPt, each containing a 3D point. If the two points are (xmin , ymin , zmin) and (xmax , ymax , zmax ) then the box is [xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ].<br>
+– for box: minPt and maxPt, each containing a 3D point. If the two points are <code>(xmin , ymin , zmin)</code> and <code>(xmax , ymax , zmax )</code> then the box is <code>[xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ]</code>.<br>
 <br>
 • camera: This element describes the camera. It is described by the following elements:<br>
 – viewPoint, a 3D point that specifies the center of projection.<br>
