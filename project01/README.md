@@ -53,7 +53,6 @@ The input file for your ray tracer is in XML. An XML file contains sequences of 
 contains four elements. One is a scene element that contains two others, called camera and surface. The surface element has an attribute named type that has the value Sphere. It also contains a center element that contains the text “1.0 2.0 3.0”, which in this context would be interpreted as the 3D point (1, 2, 3). An input file for the ray tracer always contains one scene element, which is allowed to contains tags of the following types:<br>
 <br>
 • surface: This element describes a geometric object. It must have an attribute type with value Sphere or Box. It can contain a shader element to set the shader, and also geometric parameters depending on its type:<br>
-<br>
 – for sphere: center, containing a 3D point, and radius, containing a real number.<br>
 – for box: minPt and maxPt, each containing a 3D point. If the two points are (xmin , ymin , zmin) and (xmax , ymax , zmax ) then the box is [xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ].<br>
 <br>
@@ -70,7 +69,7 @@ The camera’s view is determined by the center of projection (the viewpoint) an
 <br>
 • light: This element describes a light. It contains the 3D point position and the RGB color color.<br>
 <br>
-• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref.
+• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref.<br>
 <br>
 For instance:<br>
 <br>
@@ -130,7 +129,8 @@ The framework contains a class to represent RGB colors. It supports gamma correc
 <h3>5.1. How to run the skeleton code</h3>
 After installing the necessary packages (python3, pil and numpy), unpack the zip file.<br>
 Then run:<br>
-python3 rayTracer.py scenes/one-sphere.xml<br>
+<br>
+<code>python3 rayTracer.py scenes/one-sphere.xml</code><br>
 This will render to a PNG file of the same name, but with a ".png" extension.<br>
 The supposed output files are already in the folder, and the above command will overwrite the scenes/one-sphere.xml.png file with a mostly empty image.<br>
 <br>
