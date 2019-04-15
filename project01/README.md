@@ -47,7 +47,8 @@ The input file for your ray tracer is in XML. An XML file contains sequences of 
 <surface type=Sphere>
 <center>1.0 2.0 3.0</center>
 </surface>
-</scene>```
+</scene>
+```
 
 contains four elements. One is a scene element that contains two others, called camera and surface. The surface element has an attribute named type that has the value Sphere. It also contains a center element that contains the text “1.0 2.0 3.0”, which in this context would be interpreted as the 3D point (1, 2, 3). An input file for the ray tracer always contains one scene element, which is allowed to contains tags of the following types:<br>
 <br>
@@ -88,7 +89,6 @@ For instance:<br>
 </surface>
 ```
 
-<br>
 applies the same shader to two spheres. Really, the file format is very simple and from the examples we provide you should have no trouble constructing any scene you want.<br>
 <br>
 <br>
@@ -113,7 +113,6 @@ For instance, the input<br>
 </scene>
 ```
 
-<br>
 results in a parse tree which are automatically generated from the parser. There is more detail for the curious in the rayTracer.py.<br>
 The practical result of all this is that your ray tracer is handed a scene that contains objects that are in one-to-one correspondence with the elements in the input file. You only need to use the information that is already there.<br>
 <br>
