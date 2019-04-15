@@ -85,8 +85,8 @@ For instance:<br>
 <surface type="Sphere">
 <center>5 0 0</center>
 <shader ref="gray"/>
-</surface>```
-
+</surface>
+```
 
 applies the same shader to two spheres. Really, the file format is very simple and from the examples we provide you should have no trouble constructing any scene you want.<br>
 <br>
@@ -99,6 +99,7 @@ The framework utilizes Python’s built-in XML parsing. The parser simply reads 
 <br>
 For instance, the input<br>
 <br>
+
 ```xml
 <scene>
 <surface type="Sphere">
@@ -108,8 +109,8 @@ For instance, the input<br>
 <center>1 2 3</center>
 <radius>4</radius>
 </surface>
-</scene>```
-
+</scene>
+```
 
 results in a parse tree which are automatically generated from the parser. There is more detail for the curious in the rayTracer.py.<br>
 The practical result of all this is that your ray tracer is handed a scene that contains objects that are in one-to-one correspondence with the elements in the input file. You only need to use the information that is already there.<br>
