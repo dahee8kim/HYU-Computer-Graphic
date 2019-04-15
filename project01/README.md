@@ -110,6 +110,7 @@ For instance, the input<br>
 </surface>
 </scene>```
 
+
 results in a parse tree which are automatically generated from the parser. There is more detail for the curious in the rayTracer.py.<br>
 The practical result of all this is that your ray tracer is handed a scene that contains objects that are in one-to-one correspondence with the elements in the input file. You only need to use the information that is already there.<br>
 <br>
