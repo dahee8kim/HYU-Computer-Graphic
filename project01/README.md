@@ -69,9 +69,7 @@ The camera’s view is determined by the center of projection (the viewpoint) an
 <br>
 • light: This element describes a light. It contains the 3D point position and the RGB color color.<br>
 <br>
-• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref.<br>
-<br>
-For instance:<br>
+• shader: This element describes how a surface should be shaded. It must have an attribute type with value Lambertian or Phong. The Lambertian shader uses the RGB color diffuseColor, and the Phong shader additionally uses the RGB color specularColor and the real number exponent. A shader can appear inside a surface element, in which case it applies to that surface. It can also appear directly in the scene, which is useful if you want to give it a name and refer to it later from inside a surface (see below). If the same object needs to be referenced in several places, for instance when you want to use one shader for many surfaces, you can use the attribute name to give it a name, then later include a reference to it by using the attribute ref. For instance:<br>
 <br>
 
 ```xml
@@ -128,9 +126,10 @@ The framework contains a class to represent RGB colors. It supports gamma correc
 <h2>5. Submission and FAQ</h2>
 <h3>5.1. How to run the skeleton code</h3>
 After installing the necessary packages (python3, pil and numpy), unpack the zip file.<br>
-Then run:<br>
 <br>
+Then run:<br>
 <code>python3 rayTracer.py scenes/one-sphere.xml</code><br>
+<br>
 This will render to a PNG file of the same name, but with a ".png" extension.<br>
 The supposed output files are already in the folder, and the above command will overwrite the scenes/one-sphere.xml.png file with a mostly empty image.<br>
 <br>
