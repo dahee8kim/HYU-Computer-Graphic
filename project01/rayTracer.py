@@ -24,6 +24,9 @@ class Color:
     def toUINT8(self):
         return (np.clip(self.color, 0,1)*255).astype(np.uint8)
 
+def normalize(val):
+    return val / np.sqrt(np.dot(val, val))
+
 def main():
     tree = ET.parse(sys.argv[1])
     root = tree.getroot()
@@ -33,7 +36,6 @@ def main():
     red=Color(1,0,0)
     blue=Color(0,0,1)
 
-    objColor = white
     viewPoint = np.array([0,0,0]).astype(np.float)
     viewDir=np.array([0,0,-1]).astype(np.float)
     viewUp=np.array([0,1,0]).astype(np.float)
@@ -43,7 +45,9 @@ def main():
     projDistance=1.0
     intensity=np.array([1,1,1]).astype(np.float)  # how bright the light is.
     lightPos = np.array([1, 1, 1]).astype(np.float)
-    print(np.cross(viewDir, viewUp))
+    diffuseColor = None
+    exponent = None
+    specularColor = None
 
     imgSize=np.array(root.findtext('image').split()).astype(np.int)
 
@@ -58,11 +62,12 @@ def main():
         projDistance = float(c.findtext('projDistance'))
         viewProjNormal = np.array(c.findtext('projNormal').split()).astype(np.float)
         viewDir = np.array(c.findtext('viewDir').split()).astype(np.float)
+        viewUp = np.array(c.findtext('viewUp').split()).astype(np.float)
 
     for c in root.findall('shader'):
-        diffuseColor_c=np.array(c.findtext('diffuseColor').split()).astype(np.float)
-        print('name', c.get('name'))
-        print('diffuseColor', diffuseColor_c)
+        diffuseColor=np.array(c.findtext('diffuseColor').split()).astype(np.float)
+        exponent=float(c.findtext('exponent'))
+        specularColor = np.array(c.findtext('specularColor').split()).astype(np.float)
 
     coi = np.array([0, 0, 0])
     for c in root.findall('surface'):
@@ -71,59 +76,52 @@ def main():
 
     #code.interact(local=dict(globals(), **locals()))  
 
-    print('viewPoint:', viewPoint)
-    print('viewDir:', viewDir)
-    print('projNormal:', viewProjNormal)
-    print('viewUp:', viewUp)
-    print('projDistance:', projDistance)
-    print('viewWidth:', viewWidth)
-    print('viewHeight:', viewHeight)
-
     # Create an empty image
     channels=3
     img = np.zeros((imgSize[1], imgSize[0], channels), dtype=np.uint8)
     img[:,:]=0
-    
-    # replace the code block below!
-    W = viewPoint - coi
-    w = W / (np.sqrt(np.dot(W, W)))
-
-    U = np.cross(viewUp, w)
-    u = U / (np.sqrt(np.dot(U, U)))
-
-    v = np.cross(w, u)
-
-    # 여기까지 u, v, w 는 단위벡터
 
     e = viewPoint
+    
+    # replace the code block below!
+    # w = normalize(e - coi)
+    w = normalize(viewProjNormal)
+    u = normalize(np.cross(viewUp, w))
+    v = normalize(np.cross(w, u))
+
+    # 여기까지 u, v, w 는 단위벡터
     p = e
-    l = -viewWidth / 2
-    b = -viewHeight / 2
-    r = viewWidth / 2
-    t = viewHeight / 2
+    x1 = -viewWidth / 2
+    y1 = -viewHeight / 2
+    x2 = viewWidth / 2
+    y2 = viewHeight / 2
     nx = imgSize[0]
     ny = imgSize[1]
 
+    defaultColor = Color(diffuseColor[0], diffuseColor[1], diffuseColor[2]).toUINT8()
+
     for i in np.arange(imgSize[0]):
         for j in np.arange(imgSize[1]):
-
-            x = l + (r - l) * (i + 0.5) / nx
-            y = b + (t - b) * (j + 0.5) / ny
+            x = x1 + (x2 - x1) * (i + 0.5) / nx
+            y = y1 + (y2 - y1) * (j + 0.5) / ny
             s = e + (x * u) + (y * v) - (projDistance * w)
-            d = s - e
-            d = d / np.sqrt(np.dot(d, d))
+            d = normalize(s - e)
             temp = np.power(np.dot(d, p), 2) - np.dot(p, p) + 1
 
             if temp < 0:
                 continue
 
-            img[i][j] = white.toUINT8()
+            t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
+            point = e + t * d
 
-            pt = max(-np.dot(d, p) + np.sqrt(temp), -np.dot(d, p) - np.sqrt(temp))
-            pt = e + pt * d
+            n = normalize(point - coi)
+            l = normalize(lightPos - point)
+            h = normalize(-d + l)
 
-            Q = pt - coi
-            Q = Q / np.sqrt(np.dot(Q, Q))
+            pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
+            pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
+            pixelColor.gammaCorrect(2.2)
+            img[j][i] = pixelColor.toUINT8()
 
     rawimg = Image.fromarray(img, 'RGB')
     #rawimg.save('out.png')
