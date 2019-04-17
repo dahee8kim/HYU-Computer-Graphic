@@ -3,9 +3,7 @@
 - <a href="http://calab.hanyang.ac.kr/courses/CG_taesoo/PA1_2019.pdf" target="_blank">calab.hanyang.ac.kr</a><br>
 - <a href="http://www.cs.cornell.edu/courses/cs4620/2011fa/lectures/07raytracingWeb.pdf" target="_blank">cs.cornell.edu</a><br>
 - <a href="http://web.cse.ohio-state.edu/~shen.94/681/Site/Slides_files/basic_algo.pdf">web.cse.ohio-state.edu</a><br>
-<br>
 <hr>
-<br>
 <h1>Program 1: ray tracer</h1>
 <i>out: Thursday March 21, 2019<br>
 due: Thursdsay April 25, 2019 (24pm)</i>
@@ -56,7 +54,7 @@ contains four elements. One is a scene element that contains two others, called 
 <br>
 • surface: This element describes a geometric object. It must have an attribute type with value Sphere or Box. It can contain a shader element to set the shader, and also geometric parameters depending on its type:<br>
 – for sphere: center, containing a 3D point, and radius, containing a real number.<br>
-– for box: minPt and maxPt, each containing a 3D point. If the two points are (xmin , ymin , zmin) and (xmax , ymax , zmax ) then the box is [xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ].<br>
+– for box: minPt and maxPt, each containing a 3D point. If the two points are <code>(xmin , ymin , zmin)</code> and <code>(xmax , ymax , zmax )</code> then the box is <code>[xmin , xmax ] × [ymin , ymax ] × [zmin , zmax ]</code>.<br>
 <br>
 • camera: This element describes the camera. It is described by the following elements:<br>
 – viewPoint, a 3D point that specifies the center of projection.<br>
