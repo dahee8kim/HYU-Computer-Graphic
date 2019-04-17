@@ -42,9 +42,14 @@ def main():
     viewHeight=1.0
     projDistance=1.0
     intensity=np.array([1,1,1]).astype(np.float)  # how bright the light is.
+    lightPos = np.array([1, 1, 1]).astype(np.float)
     print(np.cross(viewDir, viewUp))
 
     imgSize=np.array(root.findtext('image').split()).astype(np.int)
+
+    for c in root.findall('light'):
+        lightPos = np.array(c.findtext('position').split()).astype(np.float)
+        intensity = np.array(c.findtext('intensity').split()).astype(np.float)
 
     for c in root.findall('camera'):
         viewPoint = np.array(c.findtext('viewPoint').split()).astype(np.float)
@@ -97,7 +102,7 @@ def main():
     r = viewWidth / 2
     t = viewHeight / 2
     nx = imgSize[0]
-    ny = imgWWWWSize[1]
+    ny = imgSize[1]
 
     for i in np.arange(imgSize[0]):
         for j in np.arange(imgSize[1]):
@@ -112,18 +117,13 @@ def main():
             if temp < 0:
                 continue
 
-            img[i][j] = blue.toUINT8()
+            img[i][j] = white.toUINT8()
 
-            t1 = -np.dot(d, p) + np.sqrt(temp)
-            t2 = -np.dot(d, p) - np.sqrt(temp)
+            pt = max(-np.dot(d, p) + np.sqrt(temp), -np.dot(d, p) - np.sqrt(temp))
+            pt = e + pt * d
 
-            if t1 < t2:
-                t = t1
-            else:
-                t = t2
-
-
-    img[150][150] = Color(1, 1, 1).toUINT8()
+            Q = pt - coi
+            Q = Q / np.sqrt(np.dot(Q, Q))
 
     rawimg = Image.fromarray(img, 'RGB')
     #rawimg.save('out.png')
