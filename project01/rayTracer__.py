@@ -6,12 +6,25 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from PIL import Image 
 
+################################################################################
+
 class rayTrace:
     camera = {}
     image = {}
     shader = {}
     surface = {}
     light = {}
+
+    def createEmptyCanvas(self):
+        channels = 3
+        img = np.zeros((self.image['width'], self.image['height'], channels), dtype=np.uint8)
+        img[:,:] = 0
+
+        return img
+
+    def saveImg(self, name):
+        img = Image.fromarray(self.img, 'RGB')
+        img.save(name + '.png')
 
     def parseData(self, file):
         tree = ET.parse(file)
@@ -43,15 +56,61 @@ class rayTrace:
             self.light['position'] = np.array(c.findtext('position').split()).astype(np.float)
             self.light['intensity'] = np.array(c.findtext('intensity').split()).astype(np.float)
 
+    def draw(self):
+        self.img = self.createEmptyCanvas()
+
+        e = self.camera['viewPoint']
+        p = e
+    
+        vector_w = normalize(self.camera['projNormal'])
+        vector_u = normalize(np.cross(self.camera['viewUp'], vector_w))
+        vector_v = normalize(np.cross(vector_w, vector_u))
+
+        x1 = -self.camera['viewWidth'] / 2
+        y1 = -self.camera['viewHeight'] / 2
+        x2 = self.camera['viewWidth'] / 2
+        y2 = self.camera['viewHeight'] / 2
+        nx = self.image['width']
+        ny = self.image['height']
+
+        for i in np.arange(nx):
+            for j in np.arange(ny):
+                x = x1 + (x2 - x1) * (i + 0.5) / nx
+                y = y1 + (y2 - y1) * (j + 0.5) / ny
+                s = e + (x * vector_u) + (y * vector_v) - (self.camera['projDistance'] * vector_w)
+                d = normalize(s - e)
+                temp = np.power(np.dot(d, p), 2) - np.dot(p, p) + 1
+
+                if temp < 0:
+                    continue
+
+                t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
+                point = e + t * d
+
+                n = normalize(point - self.surface['center'])
+                l = normalize(self.light['position'] - point)
+                h = normalize(-d + l)
+
+                diffuseColor = self.shader['diffuseColor']
+                intensity = self.light['intensity']
+                specularColor = self.shader['specularColor']
+                exponent = self.shader['exponent']
+
+                pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
+                pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
+                pixelColor.gammaCorrect(2.2)
+
+                self.img[j][i] = pixelColor.toUINT8()
+
     def __init__(self, file):
         self.parseData(file)
+
+################################################################################
 
 class Color:
     def __init__(self, R, G, B):
         self.color=np.array([R,G,B]).astype(np.float)
 
-    # Gamma corrects this color.
-    # @param gamma the gamma value to use (2.2 is generally used).
     def gammaCorrect(self, gamma):
         inverseGamma = 1.0 / gamma;
         self.color=np.power(self.color, inverseGamma)
@@ -59,67 +118,19 @@ class Color:
     def toUINT8(self):
         return (np.clip(self.color, 0,1)*255).astype(np.uint8)
 
+################################################################################
+
 def normalize(val):
     return val / np.sqrt(np.dot(val, val))
 
+################################################################################
+
 def main():
     shape = rayTrace(sys.argv[1])
-
-    # Create an empty image
-    channels=3
-    img = np.zeros((shape.image['width'], shape.image['height'], channels), dtype=np.uint8)
-    img[:,:]=0
-
-#     # set default values
-#     white=Color(1,1,1)
-#     red=Color(1,0,0)
-#     blue=Color(0,0,1)
-
-#     e = viewPoint
+    shape.draw()
+    shape.saveImg(sys.argv[1])
     
-#     # replace the code block below!
-#     # w = normalize(e - coi)
-#     w = normalize(viewProjNormal)
-#     u = normalize(np.cross(viewUp, w))
-#     v = normalize(np.cross(w, u))
 
-#     # 여기까지 u, v, w 는 단위벡터
-#     p = e
-#     x1 = -viewWidth / 2
-#     y1 = -viewHeight / 2
-#     x2 = viewWidth / 2
-#     y2 = viewHeight / 2
-#     nx = imgSize[0]
-#     ny = imgSize[1]
 
-#     defaultColor = Color(diffuseColor[0], diffuseColor[1], diffuseColor[2]).toUINT8()
-
-#     for i in np.arange(imgSize[0]):
-#         for j in np.arange(imgSize[1]):
-#             x = x1 + (x2 - x1) * (i + 0.5) / nx
-#             y = y1 + (y2 - y1) * (j + 0.5) / ny
-#             s = e + (x * u) + (y * v) - (projDistance * w)
-#             d = normalize(s - e)
-#             temp = np.power(np.dot(d, p), 2) - np.dot(p, p) + 1
-
-#             if temp < 0:
-#                 continue
-
-#             t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
-#             point = e + t * d
-
-#             n = normalize(point - coi)
-#             l = normalize(lightPos - point)
-#             h = normalize(-d + l)
-
-#             pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
-#             pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
-#             pixelColor.gammaCorrect(2.2)
-#             img[j][i] = pixelColor.toUINT8()
-
-#     rawimg = Image.fromarray(img, 'RGB')
-#     #rawimg.save('out.png')
-#     rawimg.save(sys.argv[1]+'.png')
-    
 if __name__=='__main__':
     main()
