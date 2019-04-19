@@ -144,7 +144,7 @@ def main():
 
     vector_w = normalize(shape.camera['projNormal'])
     vector_u = normalize(np.cross(shape.camera['viewUp'], vector_w))
-    vector_v = normalize(np.cross(vector_w, vector_u))
+    vector_v = normalize(np.cross(vector_u, vector_w))
 
     x1 = -shape.camera['viewWidth'] / 2
     y1 = -shape.camera['viewHeight'] / 2
@@ -152,6 +152,12 @@ def main():
     y2 = shape.camera['viewHeight'] / 2
     nx = shape.image['width']
     ny = shape.image['height']
+    xmin = shape.surface['minPt'][0]
+    ymin = shape.surface['minPt'][1]
+    zmin = shape.surface['minPt'][2]
+    xmax = shape.surface['maxPt'][0]
+    ymax = shape.surface['maxPt'][1]
+    zmax = shape.surface['maxPt'][2]
 
     for i in np.arange(nx):
         for j in np.arange(ny):
@@ -160,90 +166,43 @@ def main():
             s = e + (x * vector_u) + (y * vector_v) - (shape.camera['projDistance'] * vector_w)
             d = normalize(s - e)
 
-            temp = p + d * direction - shape.surface['minPt']
-            if not((temp < 0) | (temp > 1)).all():
-                print(temp)
+            txmin = (xmin - p[0]) / d[0]
+            txmax = (xmax - p[0]) / d[0]
+            tymin = (ymin - p[1]) / d[1]
+            tymax = (ymax - p[1]) / d[1]
+            tzmin = (zmin - p[2]) / d[2]
+            tzmax = (zmax - p[2]) / d[2]
 
-            shape.img[j][i] = [255, 255, 255]
+            tmin = max(txmax, tymax, tzmax)
+            tmax = min(txmin, tymin, tzmin)
 
-    # e = shape.camera['viewPoint']
-    # direction = shape.camera['viewDir']
+            if tmin > tmax:
+                continue
 
-    # boxMin = shape.surface['minPt']
-    # boxMax = shape.surface['maxPt']
-    # tMin = (boxMin - e) / d
-    # tMax = (boxMin - e) / d
+            temp = tmin
+            t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
+            # t = tmin
+            point = e + t * d
 
-    # t1 = min(tMin, tMax)
-    # t2 = max(tMin, tMax)
+            center = np.array([
+                (xmax - xmin) / 2,
+                (ymax - ymin) / 2,
+                (zmax - zmin) / 2])
 
-    # tNear = max(max(t1[0], t1[1]), t1[2])
-    # tFar = min(min(t2[0], t2[1]), t2[2])
+            n = normalize(point - center)
+            l = normalize(shape.light['position'] - point)
+            h = normalize(-d + l)
 
-    # if tNear > 0 and tNear < tFar:
+            diffuseColor = shape.shader['diffuseColor']
+            intensity = shape.light['intensity']
+            specularColor = shape.shader['specularColor']
+            exponent = shape.shader['exponent']
 
-  
-    # xmin = shape.surface['minPt'][0]
-    # ymin = shape.surface['minPt'][1]
-    # zmin = shape.surface['minPt'][2]
-    # xmax = shape.surface['maxPt'][0]
-    # ymax = shape.surface['maxPt'][1]
-    # zmax = shape.surface['maxPt'][2]
-    # d = shape.camera['viewDir']
+            pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
+            pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
+            pixelColor.gammaCorrect(2.2)
 
-    # txmin = (xmin - e[0]) / d[0]
-    # tymin = (ymin - e[1]) / d[1]
-    # tzmin = (zmin - e[2]) / d[2]
-    # txmax = (xmax - e[0]) / d[0]
-    # tymax = (ymax - e[1]) / d[1]
-    # tzmax = (zmax - e[2]) / d[2]
-
-    # tmin = np.array([txmin, tymin, tzmin])
-    # tmax = np.array([txmax, tymax, tzmax])
-    # tnear = np.array([np.NINF, np.NINF, np.NINF])
-    # tfar = np.array([np.Inf, np.Inf, np.Inf])
-
-    # for i in range(3):
-    #     if tmin[i] > tmax[i]:
-    #         swap(tmin[i], tmax[i])
-    #     if tmin[i] > tnear[i]:
-    #         tnear[i] = tmin[i]
-    #     if tmax[i] < tfar[i]:
-    #         tfar[i] = tmax[i]
-    #     if tnear[i] > tfar[i]:
-    #         continue
-    #     if tfar[i] < 0:
-    #         continue
-
-
-            
-
-           
-
-            # tnear
-
-
-
-    #         if temp < 0:
-    #             continue
-
-    #         t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
-    #         point = e + t * d
-
-    #         n = normalize(point - self.surface['center'])
-    #         l = normalize(self.light['position'] - point)
-    #         h = normalize(-d + l)
-
-    #         diffuseColor = self.shader['diffuseColor']
-    #         intensity = self.light['intensity']
-    #         specularColor = self.shader['specularColor']
-    #         exponent = self.shader['exponent']
-
-    #         pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
-    #         pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
-    #         pixelColor.gammaCorrect(2.2)
-
-    #         self.img[j][i] = pixelColor.toUINT8()
+            shape.img[j][i] = pixelColor.toUINT8()
     
     shape.saveImg(sys.argv[1])
 
