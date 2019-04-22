@@ -66,7 +66,7 @@ class rayTrace:
     
         vector_w = normalize(self.camera['projNormal'])
         vector_u = normalize(np.cross(self.camera['viewUp'], vector_w))
-        vector_v = -normalize(np.cross(vector_w, vector_u))
+        vector_v = normalize(np.cross(vector_w, vector_u))
 
         x1 = -self.camera['viewWidth'] / 2
         y1 = -self.camera['viewHeight'] / 2
@@ -81,23 +81,17 @@ class rayTrace:
                 y = y1 + (y2 - y1) * (j + 0.5) / ny
                 s = e + (x * vector_u) + (y * vector_v) - (self.camera['projDistance'] * vector_w)
                 d = normalize(s - e)
-
-                a = np.dot(d, d)
-                b = np.dot(d, e - self.surface['center'])
-                c = np.dot(e - self.surface['center'], e - self.surface['center']) - self.surface['radius'] ** 2
-
-                temp = (b ** 2) - (a * c)
+                temp = np.power(np.dot(d, p), 2) - np.dot(p, p) + 1
 
                 if temp < 0:
                     continue
 
-                t = min(-b + np.sqrt(temp) / a, -b - np.sqrt(temp) / a)
+                t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
                 point = e + t * d
 
                 n = normalize(point - self.surface['center'])
                 l = normalize(self.light['position'] - point)
                 h = normalize(-d + l)
-                # h = normalize((e - point) + l)
 
                 diffuseColor = self.shader['diffuseColor']
                 intensity = self.light['intensity']

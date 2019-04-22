@@ -4,6 +4,7 @@ import pdb
 import code
 import xml.etree.ElementTree as ET
 import numpy as np
+import math
 from PIL import Image 
 
 ################################################################################
@@ -134,6 +135,35 @@ def swap(a, b):
     a = b
     b = a
 
+def intersect(p, d, tmin, tmax):
+    tnear = -math.inf
+    tfar = math.inf
+
+    for i in range(3):
+        if d[i] == 0:
+            if (p[i] < tmin[i] or p[i] > tmax[i]):
+                return False, 0
+        else:
+            t1 = (tmin[i] - p[i]) / d[i]
+            t2 = (tmax[i] - p[i]) / d[i]
+
+            if t1 > t2:
+                t1, t2 = t2, t1
+
+            if t1 > tnear:
+                tnear = t1
+
+            if t2 < tfar:
+                tfar = t2
+
+            if tnear > tfar:
+                return False, 0
+
+            if tfar < 0:
+                return False, 0
+
+    return True, tnear   
+
 def main():
     shape = rayTrace(sys.argv[1])
     shape.img = shape.createEmptyCanvas()
@@ -152,12 +182,8 @@ def main():
     y2 = shape.camera['viewHeight'] / 2
     nx = shape.image['width']
     ny = shape.image['height']
-    xmin = shape.surface['minPt'][0]
-    ymin = shape.surface['minPt'][1]
-    zmin = shape.surface['minPt'][2]
-    xmax = shape.surface['maxPt'][0]
-    ymax = shape.surface['maxPt'][1]
-    zmax = shape.surface['maxPt'][2]
+
+    center = np.array([0, 0, 0]).astype(np.float)
 
     for i in np.arange(nx):
         for j in np.arange(ny):
@@ -166,32 +192,26 @@ def main():
             s = e + (x * vector_u) + (y * vector_v) - (shape.camera['projDistance'] * vector_w)
             d = normalize(s - e)
 
-            txmin = (xmin - p[0]) / d[0]
-            txmax = (xmax - p[0]) / d[0]
-            tymin = (ymin - p[1]) / d[1]
-            tymax = (ymax - p[1]) / d[1]
-            tzmin = (zmin - p[2]) / d[2]
-            tzmax = (zmax - p[2]) / d[2]
+            check, tnear = intersect(p, d, shape.surface['minPt'], shape.surface['maxPt'])
 
-            tmin = max(txmax, tymax, tzmax)
-            tmax = min(txmin, tymin, tzmin)
-
-            if tmin > tmax:
+            if check != True:
                 continue
 
-            temp = tmin
-            t = min(np.dot(-d, p) + np.sqrt(temp), np.dot(-d, p) - np.sqrt(temp))
-            # t = tmin
+            t = tnear
+
             point = e + t * d
 
-            center = np.array([
-                (xmax - xmin) / 2,
-                (ymax - ymin) / 2,
-                (zmax - zmin) / 2])
+            v = e - point
+            dp = (shape.surface['minPt'] - shape.surface['maxPt'])/2
+            bias = 1.000001
 
-            n = normalize(point - center)
+            n = np.array([
+                int(point[0] / abs(dp[0]) * bias), 
+                int(point[1] / abs(dp[1]) * bias), 
+                int(point[2] / abs(dp[2]) * bias)]).astype(np.float)
+            n = normalize(n)
             l = normalize(shape.light['position'] - point)
-            h = normalize(-d + l)
+            h = normalize(v + l)
 
             diffuseColor = shape.shader['diffuseColor']
             intensity = shape.light['intensity']
