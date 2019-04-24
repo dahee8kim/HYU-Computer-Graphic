@@ -47,9 +47,9 @@
   <shader name="stick" type="Lambertian">
     <diffuseColor>.6 .5 .3</diffuseColor>
   </shader>
-  <shader name="gray" type="Lambertian">
+<!--   <shader name="gray" type="Lambertian">
     <diffuseColor>.4 .4 .4</diffuseColor>
-  </shader>
+  </shader> -->
 
   <surface type="Box"><shader ref="stick" />
     <minPt>-1.05 -1.05 -1</minPt><maxPt>-.95 -.95 1</maxPt></surface>
@@ -95,19 +95,19 @@
   <surface type="Sphere"><shader ref="ball111" />
     <center> 1  1  1</center><radius>0.2</radius></surface>
 
-  <surface type="Box">
+  <!-- <surface type="Box">
     <shader ref="gray" />
     <minPt>-50 -1.5 -50</minPt>
     <maxPt>50 -1.2 50</maxPt>
-  </surface>
+  </surface> -->
 
   <light>
     <position> 4  5 -3</position><intensity> 1  1  1</intensity>
   </light>
-  <light>
+<!--   <light>
     <position>-4  3  5</position><intensity>.7 .7 .7</intensity>
   </light>
   <light>
     <position>10 4.2 6</position><intensity>.3 .3 .3</intensity>
-  </light>
+  </light> -->
 </scene>

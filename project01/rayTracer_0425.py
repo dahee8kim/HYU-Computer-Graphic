@@ -39,7 +39,7 @@ class Tracer:
 
     def createEmptyCanvas(self):
         channels = 3
-        img = np.zeros((self.image['width'], self.image['height'], channels), dtype=np.uint8)
+        img = np.zeros((self.image['height'], self.image['width'], channels), dtype=np.uint8)
         img[:,:] = 0
 
         return img
@@ -193,8 +193,17 @@ class Tracer:
         L = normalize(self.light['position'] - P)
 
         if self.surface[closestObj]['type'] == 'Box':
+            dp = (surface['minPt'] - surface['maxPt']) / 2
+
+            bias = 1.000001
+
+            N = np.array([
+                int(P[0] / abs(dp[0]) * bias), 
+                int(P[1] / abs(dp[1]) * bias), 
+                int(P[2] / abs(dp[2]) * bias)]).astype(np.float)
+            N = normalize(N)
+
             H = normalize((E - P) + L)
-            N = np.array(P / abs(surface['minPt'] - surface['maxPt'] / 2) * 1.000001).astype(np.float)
         else:
             H = normalize(-D + L)
             N = normalize(P - self.surface[closestObj]['center'])
@@ -209,7 +218,7 @@ class Tracer:
             specularColor = self.shader[closestObj]['specularColor']
             exponent = self.shader[closestObj]['exponent']
             pixelColor += specularColor * intensity * np.power(max(0, np.dot(N, H)), exponent)
-
+        
         pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
         pixelColor.gammaCorrect(2.2)
 
@@ -244,6 +253,9 @@ class Tracer:
 
                 P = E + t * D
 
+                # white = Color(255,255,255)
+                # self.img[j][i] = [255, 255, 255]
+                # self.img[j][i] = [0, 0, 0]
                 self.img[j][i] = self.coloring(P, D, closestObj)
 
     def __init__(self, file):

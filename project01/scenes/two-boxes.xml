@@ -34,8 +34,8 @@
     <position>4 5 -3</position>
     <intensity>1 1 1</intensity>
   </light>
-  <light>
+<!--   <light>
     <position>-4 3 5</position>
     <intensity>.7 .7 .7</intensity>
-  </light>
+  </light> -->
 </scene>
