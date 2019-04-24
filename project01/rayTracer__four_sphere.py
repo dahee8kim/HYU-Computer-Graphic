@@ -41,7 +41,6 @@ class rayTrace:
             self.camera['viewWidth'] = float(c.findtext('viewWidth'))
             self.camera['viewHeight'] = float(c.findtext('viewHeight'))
             self.camera['projDistance'] = 1.0
-            # self.camera['projDistance'] = float(c.findtext('projDistance'))
 
         imgSize = np.array(root.findtext('image').split()).astype(np.int)
         self.image['width'] = imgSize[0]
@@ -64,12 +63,9 @@ class rayTrace:
             self.light['position'] = np.array(c.findtext('position').split()).astype(np.float)
             self.light['intensity'] = np.array(c.findtext('intensity').split()).astype(np.float)
 
-    # def findClosest(self, d):
-
-    #     return tmin, closestObj
-
     def draw(self):
         self.img = self.createEmptyCanvas()
+        isShadow = False
 
         e = self.camera['viewPoint']
         p = e
@@ -96,16 +92,10 @@ class rayTrace:
                 closestObj = None
 
                 for cnt in range(self.surfaceNum):
-                    a = np.dot(d, d)
-                    b = np.dot(d, e - self.surface[cnt]['center'])
-                    c = np.dot(e - self.surface[cnt]['center'], e - self.surface[cnt]['center']) - self.surface[cnt]['radius'] ** 2
+                    t = intersection(e, d, self.surface[cnt])
 
-                    temp = (b ** 2) - (a * c)
-
-                    if temp < 0:
+                    if t == None:
                         continue
-
-                    t = min((-b + np.sqrt(temp)) / a, (-b - np.sqrt(temp)) / a)
 
                     if t < tmin:
                         closestObj = cnt
@@ -118,51 +108,52 @@ class rayTrace:
 
                 n = normalize(point - self.surface[closestObj]['center'])
                 l = normalize(self.light['position'] - point)
-                h = normalize(-d + l)
-                # h = normalize((e - point) + l)
+                h = normalize((e - point) + l)
 
                 diffuseColor = self.shader[closestObj]['diffuseColor']
                 intensity = self.light['intensity']
+                pixelColor = diffuseColor * intensity * max(0, np.dot(n, l))   
 
-                pixelColor = diffuseColor * intensity * max(0, np.dot(n, l))
-                # pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
+                shadow_dir = self.light['position'] - point
+
+                # shadow_length = getLength(self.light['position'] - point)
+                # shadow_dir = normalize(self.light['position'] - point)
+                # shadow_line = point + shadow_length * shadow_dir
+
+                for o in range(self.surfaceNum):
+                    if closestObj == o:
+                        continue
+
+                    shadow_rt = intersection(point, normalize(shadow_dir), self.surface[o])
+
+                    if shadow_rt == None:
+                        continue
+
+                    if np.dot(shadow_rt - point, shadow_dir) < 0:
+                        continue
+
+                    pixelColor = [0, 0, 0]
+                    break         
                 pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
                 pixelColor.gammaCorrect(2.2)
 
                 self.img[j][i] = pixelColor.toUINT8()
 
-
-
-
-                # temp = (b ** 2) - (a * c)
-
-                # if temp < 0:
-                #     continue
-
-                # t = min(-b + np.sqrt(temp) / a, -b - np.sqrt(temp) / a)
-
-                # n = normalize(point - self.surface['center'])
-                # l = normalize(self.light['position'] - point)
-                # h = normalize(-d + l)
-                # # h = normalize((e - point) + l)
-
-                # diffuseColor = self.shader['diffuseColor']
-                # intensity = self.light['intensity']
-                # specularColor = self.shader['specularColor']
-                # exponent = self.shader['exponent']
-
-                # pixelColor = diffuseColor * intensity * max(0, np.dot(n, l)) + specularColor * intensity * np.power(max(0, np.dot(n, h)), exponent)
-                # pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
-                # pixelColor.gammaCorrect(2.2)
-
-                # self.img[j][i] = pixelColor.toUINT8()
-
-
-
-                # self.img[j][i] = [255, 255, 255]
-
     def __init__(self, file):
         self.parseData(file)
+
+def intersection(point, d, surface):
+    point = point - surface['center']
+    a = np.dot(d, d)
+    b = np.dot(d, point)
+    c = np.dot(point, point) - surface['radius'] ** 2
+
+    temp = (b ** 2) - (a * c)
+
+    if temp < 0:
+        return None
+    else:
+        return min((-b + np.sqrt(temp)) / a, (-b - np.sqrt(temp)) / a)
 
 ################################################################################
 
