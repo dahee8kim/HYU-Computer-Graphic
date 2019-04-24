@@ -26,7 +26,7 @@ class Tracer:
     surface = {}
     light = {}
     surfaceNum = 0
-    shaderNum = 0
+    lightNum = 0
 
     def setDefault(self):
         self.camera['viewDir'] = np.array([0,0,-1]).astype(np.float)
@@ -35,7 +35,6 @@ class Tracer:
         self.camera['viewWidth'] = 1.0
         self.camera['viewHeight'] = 1.0
         self.camera['projDistance'] = 1.0
-        self.light['intensity'] = np.array([1,1,1]).astype(np.float)
 
     def createEmptyCanvas(self):
         channels = 3
@@ -68,21 +67,20 @@ class Tracer:
                 self.camera['projDistance'] = 1.0
 
         for c in root.findall('shader'):
-            cnt = self.shaderNum
-            self.shader[cnt] = {}
-            self.shader[cnt]['type'] = c.attrib['type']
-            self.shader[cnt]['diffuseColor'] = np.array(c.findtext('diffuseColor').split()).astype(np.float)
+            name = c.attrib['name']
+            self.shader[name] = {}
+            self.shader[name]['type'] = c.attrib['type']
+            self.shader[name]['diffuseColor'] = np.array(c.findtext('diffuseColor').split()).astype(np.float)
 
-            if self.shader[cnt]['type'] == 'Phong':
-                self.shader[cnt]['specularColor'] = np.array(c.findtext('specularColor').split()).astype(np.float)
-                self.shader[cnt]['exponent'] = float(c.findtext('exponent'))
-
-            self.shaderNum += 1
+            if self.shader[name]['type'] == 'Phong':
+                self.shader[name]['specularColor'] = np.array(c.findtext('specularColor').split()).astype(np.float)
+                self.shader[name]['exponent'] = float(c.findtext('exponent'))
 
         for c in root.findall('surface'):
             cnt = self.surfaceNum
             self.surface[cnt] = {}
             self.surface[cnt]['type'] = c.attrib['type']
+            self.surface[cnt]['name'] = c.find('shader').attrib['ref']
 
             if self.surface[cnt]['type'] == 'Box':
                 self.surface[cnt]['minPt'] = np.array(c.findtext('minPt').split()).astype(np.float)
@@ -94,8 +92,12 @@ class Tracer:
             self.surfaceNum += 1
 
         for c in root.findall('light'):
-            self.light['position'] = np.array(c.findtext('position').split()).astype(np.float)
-            self.light['intensity'] = np.array(c.findtext('intensity').split()).astype(np.float)
+            cnt = self.lightNum
+            self.light[cnt] = {}
+            self.light[cnt]['position'] = np.array(c.findtext('position').split()).astype(np.float)
+            self.light[cnt]['intensity'] = np.array(c.findtext('intensity').split()).astype(np.float)
+
+            self.lightNum += 1
 
         imgSize = np.array(root.findtext('image').split()).astype(np.int)
         self.image['width'] = imgSize[0]
@@ -189,36 +191,42 @@ class Tracer:
 
     def coloring(self, P, D, closestObj):
         surface = self.surface[closestObj]
+        name = surface['name']
         E = self.camera['viewPoint']
-        L = normalize(self.light['position'] - P)
 
-        if self.surface[closestObj]['type'] == 'Box':
-            dp = (surface['minPt'] - surface['maxPt']) / 2
+        pixelColor = [0, 0, 0]
+        addColor = [0, 0, 0]
 
-            bias = 1.000001
+        for cnt in self.light:
+            light = self.light[cnt]
+            L = normalize(light['position'] - P)
 
-            N = np.array([
-                int(P[0] / abs(dp[0]) * bias), 
-                int(P[1] / abs(dp[1]) * bias), 
-                int(P[2] / abs(dp[2]) * bias)]).astype(np.float)
-            N = normalize(N)
+            if self.surface[closestObj]['type'] == 'Box':
+                bias = 1.000001
+                dp = (surface['minPt'] - surface['maxPt']) / 2
+                N = np.array([
+                    int(P[0] / abs(dp[0]) * bias), 
+                    int(P[1] / abs(dp[1]) * bias), 
+                    int(P[2] / abs(dp[2]) * bias)]).astype(np.float)
+                N = normalize(N)
 
-            H = normalize((E - P) + L)
-        else:
-            H = normalize(-D + L)
-            N = normalize(P - self.surface[closestObj]['center'])
+                H = normalize((E - P) + L)
+            else:
+                H = normalize(-D + L)
+                N = normalize(P - self.surface[closestObj]['center'])
 
-        diffuseColor = self.shader[closestObj]['diffuseColor']
-        intensity = self.light['intensity']
-        defaultColor = diffuseColor * intensity * max(0, dot(N, L))
+            intensity = light['intensity']
+            diffuseColor = self.shader[name]['diffuseColor']
 
-        pixelColor = self.shadow(P, defaultColor, closestObj)
+            pixelColor += (diffuseColor * intensity * max(0, dot(N, L)))
 
-        if self.shader[closestObj]['type'] == 'Phong':
-            specularColor = self.shader[closestObj]['specularColor']
-            exponent = self.shader[closestObj]['exponent']
-            pixelColor += specularColor * intensity * np.power(max(0, np.dot(N, H)), exponent)
-        
+            # pixelColor = self.shadow(P, defaultColor, closestObj)
+            if self.shader[name]['type'] == 'Phong':
+                specularColor = self.shader[name]['specularColor']
+                exponent = self.shader[name]['exponent']
+                addColor += specularColor * intensity * np.power(max(0, np.dot(N, H)), exponent)
+
+        pixelColor += addColor
         pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
         pixelColor.gammaCorrect(2.2)
 
@@ -253,9 +261,6 @@ class Tracer:
 
                 P = E + t * D
 
-                # white = Color(255,255,255)
-                # self.img[j][i] = [255, 255, 255]
-                # self.img[j][i] = [0, 0, 0]
                 self.img[j][i] = self.coloring(P, D, closestObj)
 
     def __init__(self, file):
