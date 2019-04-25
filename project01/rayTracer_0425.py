@@ -215,18 +215,19 @@ class Tracer:
                 H = normalize(-D + L)
                 N = normalize(P - self.surface[closestObj]['center'])
 
-            intensity = light['intensity']
+        #     intensity = light['intensity']
             diffuseColor = self.shader[name]['diffuseColor']
+            pixelColor = diffuseColor
 
-            pixelColor += (diffuseColor * intensity * max(0, dot(N, L)))
+        #     pixelColor += (diffuseColor * intensity * max(0, dot(N, L)))
 
-            # pixelColor = self.shadow(P, defaultColor, closestObj)
-            if self.shader[name]['type'] == 'Phong':
-                specularColor = self.shader[name]['specularColor']
-                exponent = self.shader[name]['exponent']
-                addColor += specularColor * intensity * np.power(max(0, np.dot(N, H)), exponent)
+        #     # pixelColor = self.shadow(P, defaultColor, closestObj)
+        #     if self.shader[name]['type'] == 'Phong':
+        #         specularColor = self.shader[name]['specularColor']
+        #         exponent = self.shader[name]['exponent']
+        #         addColor += specularColor * intensity * np.power(max(0, np.dot(N, H)), exponent)
 
-        pixelColor += addColor
+        # pixelColor += addColor
         pixelColor = Color(pixelColor[0], pixelColor[1], pixelColor[2])
         pixelColor.gammaCorrect(2.2)
 
